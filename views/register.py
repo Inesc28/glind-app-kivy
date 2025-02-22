@@ -4,7 +4,6 @@ from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
-
 from backend.users import register_new_user
 from views.login_view import LoginScreen
 
@@ -58,7 +57,6 @@ class RegisterScreen(BoxLayout):
         )
         self.add_widget(self.password)
 
-        # Crear el botón de registro
         self.save_button = Button(
             text="Registrar",
             size_hint=(1, None),
@@ -68,7 +66,6 @@ class RegisterScreen(BoxLayout):
         self.save_button.bind(on_release=self.register_data)
         self.add_widget(self.save_button)
 
-        # Crear el botón de iniciar sesión
         self.log_button = Button(
             text="Si ya tienes una cuenta, Inicia Sesión",
             size_hint=(1, None),

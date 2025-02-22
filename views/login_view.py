@@ -5,7 +5,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from backend.users import validate_user
-from views.home_view import HomeScreen
+from views.home_view import HomeView
 
 class LoginScreen(BoxLayout):
 
@@ -67,4 +67,4 @@ class LoginScreen(BoxLayout):
     def handle_login(self, user_id):
         app = App.get_running_app()
         app.root.clear_widgets()
-        app.root.add_widget(HomeScreen(logged_in_user_id=user_id))
+        app.root.add_widget(HomeView(logged_in_user_id=user_id))

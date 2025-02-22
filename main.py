@@ -6,6 +6,7 @@ class MainApp(App):
     def build(self):
         self.title = "Glind"
         layout = BoxLayout(orientation='vertical')
+        # Agregar las vistas a un BoxLayout (puedes cambiar a un ScreenManager si necesitas cambiar entre pantallas)
         layout.add_widget(RegisterScreen())
         return layout
 
