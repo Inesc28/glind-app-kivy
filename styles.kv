@@ -1,0 +1,32 @@
+<TextInput>:
+    background_color: 0, 0, 0, 0  # Fondo transparente
+    canvas.before:
+        Color:
+            rgba: 0.6, 0, 0, 1  # Color rojo oscuro para el borde
+        Line:
+            width: 1.5
+            rounded_rectangle: self.x, self.y, self.width, self.height, 10  # Borde con esquinas redondeadas
+
+<Button>:
+    background_normal: ''  # Elimina la imagen de fondo predeterminada
+    background_color: 0.6, 0, 0, 1  # Fondo rojo oscuro
+    size_hint_x: None
+    width: 200  # Ancho personalizado
+    pos_hint: {'center_x': 0.5}  # Centrado horizontalmente
+    canvas.before:
+        Color:
+            rgba: self.background_color
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [10]  # Radio del borde redondeado
+
+# Estilo para el botón de inicio de sesión
+<ButtonLogin>:
+    background_normal: ''  # Elimina la imagen de fondo predeterminada
+    background_color: 0, 0, 0, 0  # Fondo transparente
+    color: 0.6, 0, 0, 1  # Color del texto rojo oscuro
+    size_hint_x: None
+    width: 200  # Ancho personalizado
+    pos_hint: {'center_x': 0.5}  # Centrado horizontalmente
+
