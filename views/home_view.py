@@ -4,18 +4,13 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
 from kivy.uix.actionbar import ActionBar, ActionView, ActionPrevious, ActionButton
-from kivy.clock import Clock
 from backend.users import connect_to_server_threaded, get_user_data, get_connected_users
 
 class HomeView(BoxLayout):
     def __init__(self, logged_in_user_id, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
         self.logged_in_user_id = logged_in_user_id
-        
-        # Conectar al servidor en un hilo separado
         connect_to_server_threaded(logged_in_user_id, self)
-        
-        # Crear la interfaz
         self.create_ui()
 
     def create_ui(self):
@@ -42,10 +37,8 @@ class HomeView(BoxLayout):
         
         self.appbar.add_widget(self.action_view)
         
-        # Botón para refrescar la lista
         self.refresh_button = Button(text="Actualizar Lista", on_press=self.refresh_ui)
         
-        # Contenedor de la UI
         self.add_widget(self.appbar)
         self.add_widget(user_name)
         self.add_widget(user_code)
@@ -58,7 +51,6 @@ class HomeView(BoxLayout):
 
     def refresh_ui(self, *args):
         self.connected_users_list.clear_widgets()
-        
         connected_users = get_connected_users(self.logged_in_user_id)
         if connected_users:
             for user in connected_users:
@@ -68,11 +60,9 @@ class HomeView(BoxLayout):
                     user_label = Label(text=f"Usuario: {username}")
                     user_button = Button(text="Visualizar pantalla", size_hint=(None, None), size=(150, 40))
                     user_button.bind(on_press=lambda x, user_id=user_id: self.visualizar(user_id))
-                    
                     user_layout = BoxLayout(orientation='horizontal')
                     user_layout.add_widget(user_label)
                     user_layout.add_widget(user_button)
-                    
                     self.connected_users_list.add_widget(user_layout)
 
     def visualizar(self, user_id):

@@ -6,24 +6,18 @@ from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from backend.users import validate_user
 from views.home_view import HomeView
-
 class LoginScreen(BoxLayout):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.orientation = 'vertical'
         self.spacing = 20
         self.padding = 20
-
-        # Crear el título
         self.title = Label(
             text="Iniciar Sesión",
             font_size='24sp',
             color=(1, 1, 1, 1)
         )
         self.add_widget(self.title)
-
-        # Crear los campos de texto
         self.username_field = TextInput(
             hint_text="Username",
             multiline=False,
@@ -31,7 +25,6 @@ class LoginScreen(BoxLayout):
             height=40
         )
         self.add_widget(self.username_field)
-
         self.password_field = TextInput(
             hint_text="Password",
             multiline=False,
@@ -40,8 +33,6 @@ class LoginScreen(BoxLayout):
             height=40
         )
         self.add_widget(self.password_field)
-
-        # Crear el botón de inicio de sesión
         self.save_button = Button(
             text="Iniciar Sesión",
             size_hint=(1, None),
