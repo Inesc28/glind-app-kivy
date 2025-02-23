@@ -34,7 +34,7 @@ def generate_user_id(pais="VE"):
 
 def register_new_user(email, user, password):
     asignedId = generate_user_id()
-    if asignedId in users:
+    while asignedId in users:
         register_new_user(email, user, password)
     users[asignedId] = {"email": email, "user": user, "password": password}
     print(users)

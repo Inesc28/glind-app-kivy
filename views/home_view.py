@@ -1,3 +1,4 @@
+import json
 import requests
 from io import BytesIO
 from kivy.uix.label import Label
@@ -7,7 +8,9 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
 from kivy.core.image import Image as CoreImage
 from kivy.uix.actionbar import ActionBar, ActionView, ActionPrevious, ActionButton
-from backend.users import connect_to_server_threaded, get_user_data, get_connected_users
+from kivy.uix.popup import Popup
+from backend.users import connect_to_server_threaded, get_user_data, get_connected_users, client_sockets
+from backend.screen_share import capture_and_send_frames, receive_and_display_frames
 
 class HomeView(BoxLayout):
     def __init__(self, logged_in_user_id, **kwargs):
@@ -27,7 +30,7 @@ class HomeView(BoxLayout):
             user_name = Label(text="Usuario desconocido")
         
         logo_url = "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/3044f73c-0547-4b01-aeec-7ebff6555e1b/dj1p9o7-af65f7df-e4ef-497f-9cb7-b4545d76045e.png/v1/fill/w_400,h_400/logo_glind_by_coloringdancingedits_dj1p9o7-fullview.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NDAwIiwicGF0aCI6IlwvZlwvMzA0NGY3M2MtMDU0Ny00YjAxLWFlZWMtN2ViZmY2NTU1ZTFiXC9kajFwOW83LWFmNjVmN2RmLWU0ZWYtNDk3Zi05Y2I3LWI0NTQ1ZDc2MDQ1ZS5wbmciLCJ3aWR0aCI6Ijw9NDAwIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmltYWdlLm9wZXJhdGlvbnMiXX0.e7HioozPY8w7uJYU9ucOlj32A2t67eokOm5vkh3go-A"
-        
+
         try:
             # Descargar la imagen del logo
             response = requests.get(logo_url)
@@ -82,4 +85,73 @@ class HomeView(BoxLayout):
                     self.connected_users_list.add_widget(user_layout)
 
     def visualizar(self, user_id):
-        print(f"Visualizando pantalla del usuario {user_id}.")
+        print(f"Enviando solicitud de pantalla al usuario {user_id}.")
+        request = {"action": "screen_request", "targetUserId": user_id}
+        client_socket = client_sockets.get(self.logged_in_user_id)
+        if client_socket:
+            client_socket.send(json.dumps(request).encode())
+
+    def handle_screen_request(self, from_user_id):
+        popup = Popup(
+            title='Solicitud de pantalla',
+            content=Label(text=f'El usuario {from_user_id} quiere ver tu pantalla. ¿Aceptas?'),
+            size_hint=(None, None),
+            size=(400, 400),
+            auto_dismiss=False
+        )
+        accept_button = Button(text="Aceptar", size_hint=(1, None), height=40)
+        reject_button = Button(text="Rechazar", size_hint=(1, None), height=40)
+        buttons_layout = BoxLayout(size_hint_y=None, height=40)
+        buttons_layout.add_widget(accept_button)
+        buttons_layout.add_widget(reject_button)
+
+        content_layout = BoxLayout(orientation='vertical')
+        content_layout.add_widget(popup.content)
+        content_layout.add_widget(buttons_layout)
+        popup.content = content_layout
+        
+        def accept(instance):
+            response = {
+                "action": "screen_response",
+                "targetUserId": from_user_id,
+                "response": True
+            }
+            client_socket = client_sockets.get(self.logged_in_user_id)
+            if client_socket:
+                client_socket.send(json.dumps(response).encode())
+            popup.dismiss()
+            capture_and_send_frames(self.logged_in_user_id, from_user_id, "127.0.0.1", 5051)
+        
+        def reject(instance):
+            response = {
+                "action": "screen_response",
+                "targetUserId": from_user_id,
+                "response": False
+            }
+            client_socket = client_sockets.get(self.logged_in_user_id)
+            if client_socket:
+                client_socket.send(json.dumps(response).encode())
+            popup.dismiss()
+        
+        accept_button.bind(on_press=accept)
+        reject_button.bind(on_press=reject)
+        popup.open()
+
+    def handle_screen_response(self, response_data):
+        from_user_id = response_data.get("from_user_id")
+        response = response_data.get("response")
+        if response:
+            print(f"Usuario {from_user_id} aceptó la solicitud de pantalla.")
+            receive_and_display_frames(self.logged_in_user_id, "127.0.0.1", 5051)
+        else:
+            print(f"Usuario {from_user_id} rechazó la solicitud de pantalla.")
+            self.show_popup("Rechazado", f"Usuario {from_user_id} rechazó la solicitud de pantalla.")
+
+    def show_popup(self, title, message):
+        popup = Popup(
+            title=title,
+            content=Label(text=message),
+            size_hint=(None, None),
+            size=(400, 400)
+        )
+        popup.open()

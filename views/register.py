@@ -10,8 +10,6 @@ from kivy.lang import Builder
 from kivy.core.image import Image as CoreImage
 from backend.users import register_new_user
 from views.login_view import LoginScreen
-
-
 Builder.load_file('styles.kv')
 class ButtonLogin(Button):
     pass

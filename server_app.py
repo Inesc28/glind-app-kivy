@@ -17,13 +17,12 @@ def handle_client(conn, addr):
             conn.settimeout(1.0)
             while True:
                 try:
-                    data = conn.recv(1024).decode()
+                    data = conn.recv(4096).decode()
                     if not data:
                         break
                     request = json.loads(data)
                     action = request.get("action")
                     if action == "get_connected_users":
-                        # Enviar la lista de usuarios conectados
                         connected_users = [
                             {"userId": uid, "username": udata["username"]}
                             for uid, udata in users.items()
@@ -33,26 +32,51 @@ def handle_client(conn, addr):
                             "users": connected_users,
                         }
                         conn.send(json.dumps(response).encode())
+                    elif action == "screen_request":
+                        target_user_id = request.get("targetUserId")
+                        if target_user_id in users:
+                            target_conn = users[target_user_id]["conn"]
+                            screen_request = {
+                                "action": "screen_request",
+                                "fromUserId": user_id
+                            }
+                            target_conn.send(json.dumps(screen_request).encode())
+                    elif action == "screen_response":
+                        target_user_id = request.get("targetUserId")
+                        response = request.get("response")
+                        target_conn = users[target_user_id]["conn"]
+                        screen_response = {
+                            "action": "screen_response",
+                            "fromUserId": user_id,
+                            "response": response
+                        }
+                        target_conn.send(json.dumps(screen_response).encode())
+                    elif action == "screen_frame":
+                        target_user_id = request.get("targetUserId")
+                        frame_data = request.get("frame")
+                        if target_user_id in users:
+                            target_conn = users[target_user_id]["conn"]
+                            screen_frame = {
+                                "action": "screen_frame",
+                                "fromUserId": user_id,
+                                "frame": frame_data
+                            }
+                            target_conn.send(json.dumps(screen_frame).encode())
                     else:
                         pass
                 except socket.timeout:
-                    # Si ocurre un timeout, continuamos para verificar la conexión
                     continue
                 except ConnectionResetError:
-                    # El cliente cerró la conexión abruptamente
                     break
                 except Exception as ex:
                     print(f"Error al recibir datos del cliente {user_id}: {ex}")
                     break
-        # Eliminar al usuario de la lista al desconectarse
-        print(f"Usuario {user_id} desconectado del servidor.")
         if user_id in users:
             del users[user_id]
     except Exception as ex:
         print(f"Error en handle_client: {ex}")
     finally:
         conn.close()
-
 
 def start_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
